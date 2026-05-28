@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react"
 import { useMemo } from "react"
-import type { GeneratedScheme, ThemeTokens } from "@colorspec/core"
+import type { GeneratedScheme, ThemeTokens, TokenGroupName } from "@colorspec/core"
 
 import { cn } from "#/lib/utils.ts"
 
@@ -32,18 +32,62 @@ function chartColors(scheme: GeneratedScheme, mode: Mode): string[] {
   return result
 }
 
+function pickRowGroupColor(
+  scheme: GeneratedScheme,
+  rowKey: string,
+  mode: Mode,
+  group: TokenGroupName,
+  indexInGroup: number,
+): string | undefined {
+  const row = scheme.scales.matrix.find((entry) => entry.key === rowKey)
+  if (!row) return undefined
+
+  const scale = mode === "dark" ? row.dark : row.light
+  const groups = scheme.groups[mode]
+  const groupLength = groups[group].length
+  if (groupLength === 0) return undefined
+
+  const offset =
+    groups.background.length +
+    groups.border.length +
+    groups.icon.length +
+    groups.solid.length
+
+  const groupOffsets: Record<TokenGroupName, number> = {
+    background: 0,
+    border: groups.background.length,
+    icon: groups.background.length + groups.border.length,
+    solid: groups.background.length + groups.border.length + groups.icon.length,
+    text: offset,
+  }
+
+  const index = groupOffsets[group] + Math.min(groupLength - 1, Math.max(0, indexInGroup))
+  return scale[index]
+}
+
 function destructiveTextColor(scheme: GeneratedScheme, mode: Mode): string {
+  const textIndex = scheme.groups[mode].text.length - 1
   return (
-    pickRowColor(scheme, "red", mode, 1) ??
-    pickRowColor(scheme, "orange", mode, 1) ??
+    pickRowGroupColor(scheme, "red", mode, "text", textIndex) ??
+    pickRowGroupColor(scheme, "orange", mode, "text", textIndex) ??
     scheme.tokens[mode].text.strong
+  )
+}
+
+function destructiveSolidColor(scheme: GeneratedScheme, mode: Mode): string {
+  const solidIndex = Math.max(0, scheme.groups[mode].solid.length - 1)
+  return (
+    pickRowGroupColor(scheme, "red", mode, "solid", solidIndex) ??
+    pickRowGroupColor(scheme, "orange", mode, "solid", solidIndex) ??
+    scheme.tokens[mode].background.interactive
   )
 }
 
 export function buildPreviewVars(scheme: GeneratedScheme, mode: Mode): Record<string, string> {
   const tokens: ThemeTokens = scheme.tokens[mode]
   const charts = chartColors(scheme, mode)
-  const destructive = destructiveTextColor(scheme, mode)
+  const destructiveText = destructiveTextColor(scheme, mode)
+  const destructiveSolid = destructiveSolidColor(scheme, mode)
 
   return {
     "--background": tokens.background.canvas,
@@ -60,8 +104,9 @@ export function buildPreviewVars(scheme: GeneratedScheme, mode: Mode): Record<st
     "--muted-foreground": tokens.text.muted,
     "--accent": tokens.background.elevated,
     "--accent-foreground": tokens.text.strong,
-    "--destructive": destructive,
+    "--destructive": destructiveSolid,
     "--destructive-foreground": tokens.text.onAccent,
+    "--destructive-text": destructiveText,
     "--border": tokens.border.subtle,
     "--input": tokens.border.strong,
     "--ring": tokens.border.focus,

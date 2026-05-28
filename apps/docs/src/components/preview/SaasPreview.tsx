@@ -48,6 +48,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "#/
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert.tsx"
 import { Avatar, AvatarFallback } from "#/components/ui/avatar.tsx"
 import { Badge } from "#/components/ui/badge.tsx"
+import { BadgeColorGallery } from "#/components/preview/BadgeColorGallery.tsx"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "#/components/ui/breadcrumb.tsx"
 import { Button } from "#/components/ui/button.tsx"
 import { Calendar } from "#/components/ui/calendar.tsx"
@@ -1077,6 +1078,8 @@ export function SaasPreview() {
                       <Badge variant="secondary">Secondary</Badge>
                       <Badge variant="outline">Outline</Badge>
                       <Badge variant="destructive">Destructive</Badge>
+                      <Badge variant="ghost">Ghost</Badge>
+                      <Badge variant="link">Link</Badge>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
@@ -1118,6 +1121,8 @@ export function SaasPreview() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <BadgeColorGallery />
               </TabsContent>
             </Tabs>
           </main>

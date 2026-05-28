@@ -43,6 +43,20 @@ describe("generateScheme", () => {
     }
   })
 
+  it("builds dark groups from a dark base instead of mirroring light", () => {
+    const scheme = generateScheme({ seed: { hue: 250, chroma: 0.17 } })
+
+    const darkBackgroundLightness = scheme.groups.dark.background.map(parseLightness)
+    const lightBackgroundLightness = scheme.groups.light.background.map(parseLightness)
+
+    for (let i = 1; i < darkBackgroundLightness.length; i += 1) {
+      expect(darkBackgroundLightness[i]).toBeGreaterThanOrEqual(darkBackgroundLightness[i - 1])
+    }
+
+    expect(darkBackgroundLightness[0]).toBeLessThan(0.25)
+    expect(darkBackgroundLightness[0]).toBeLessThan(lightBackgroundLightness[lightBackgroundLightness.length - 1])
+  })
+
   it("creates grouped semantic tokens", () => {
     const scheme = generateScheme({ seed: { hue: 120, chroma: 0.13 } })
     expect(scheme.tokens.light.background.canvas).toMatch(/^oklch\(/)

@@ -132,6 +132,7 @@ function applyChromaToColor(
     count: number
     group: TokenGroupName
     rampProfile: RampProfileName
+    isDark: boolean
   },
 ): string {
   const parsed = toOklch(color)
@@ -142,7 +143,9 @@ function applyChromaToColor(
   const chromaPosition = shapeRampPosition(options.rampProfile, "chroma", options.group, position)
   const lightnessPosition = shapeRampPosition(options.rampProfile, "lightness", options.group, position)
   const chromaRangeValue = options.chromaMin + (options.chromaMax - options.chromaMin) * chromaPosition
-  const lightnessRangeValue = options.lightnessMax + (options.lightnessMin - options.lightnessMax) * lightnessPosition
+  const lightnessRangeValue = options.isDark
+    ? options.lightnessMin + (options.lightnessMax - options.lightnessMin) * lightnessPosition
+    : options.lightnessMax + (options.lightnessMin - options.lightnessMax) * lightnessPosition
   const nextChroma = options.sourceChroma * chromaRangeValue
   return oklchToCss(lightnessRangeValue, clamp(nextChroma, 0, 0.4), parsed.h)
 }
@@ -331,6 +334,13 @@ export function generateScheme(input: SchemeInput): GeneratedScheme & { diagnost
     icon: input.groupLightnessRange?.icon ?? { min: 0.72, max: 0.8 },
     text: input.groupLightnessRange?.text ?? { min: 0.2, max: 0.5 },
   }
+  const groupDarkLightnessRange: Record<TokenGroupName, { min: number; max: number }> = {
+    background: input.groupDarkLightnessRange?.background ?? { min: 0.12, max: 0.19 },
+    border: input.groupDarkLightnessRange?.border ?? { min: 0.24, max: 0.38 },
+    solid: input.groupDarkLightnessRange?.solid ?? { min: 0.56, max: 0.7 },
+    icon: input.groupDarkLightnessRange?.icon ?? { min: 0.68, max: 0.84 },
+    text: input.groupDarkLightnessRange?.text ?? { min: 0.78, max: 0.96 },
+  }
   const groupRampProfiles: Record<TokenGroupName, RampProfileName> = {
     background: input.groupRampProfiles?.background ?? defaultRampProfile,
     border: input.groupRampProfiles?.border ?? defaultRampProfile,
@@ -399,19 +409,21 @@ export function generateScheme(input: SchemeInput): GeneratedScheme & { diagnost
         count: stepGroups[index].count,
         group: stepGroups[index].group,
         rampProfile: groupRampProfiles[stepGroups[index].group],
+        isDark: false,
       }),
     ),
     dark: row.dark.map((color, index) =>
       applyChromaToColor(color, {
         chromaMin: groupChromaRange[stepGroups[index].group].min,
         chromaMax: groupChromaRange[stepGroups[index].group].max,
-        lightnessMin: groupLightnessRange[stepGroups[index].group].min,
-        lightnessMax: groupLightnessRange[stepGroups[index].group].max,
+        lightnessMin: groupDarkLightnessRange[stepGroups[index].group].min,
+        lightnessMax: groupDarkLightnessRange[stepGroups[index].group].max,
         sourceChroma: row.chroma,
         index: stepGroups[index].index,
         count: stepGroups[index].count,
         group: stepGroups[index].group,
         rampProfile: groupRampProfiles[stepGroups[index].group],
+        isDark: true,
       }),
     ),
   }))

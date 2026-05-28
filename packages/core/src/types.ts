@@ -19,6 +19,7 @@ export interface SchemeInput {
   groupSizes?: Partial<Record<TokenGroupName, number>>
   groupChromaRange?: Partial<Record<TokenGroupName, { min: number; max: number }>>
   groupLightnessRange?: Partial<Record<TokenGroupName, { min: number; max: number }>>
+  groupDarkLightnessRange?: Partial<Record<TokenGroupName, { min: number; max: number }>>
   rampProfile?: RampProfileName
   groupRampProfiles?: Partial<Record<TokenGroupName, RampProfileName>>
   hueValues?: Partial<Record<string, number>>
